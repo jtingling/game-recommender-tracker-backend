@@ -49,17 +49,23 @@ app.get('/authenticate', (req, res) => {
 app.get('/games/:gameName', (req, res, next) => {
     app.locals.gameName = req.params.gameName;
     getGameData(app.locals.gameName, igdb.getUris.game)
-    .then(response => res.send(response.data))
+    .then(response => res.status(200).send(response.data))
+    .catch( e => console.log(e.message))
+})
+app.get('/search/:id', (req, res)=>{
+    
 })
 
 app.get('/recommendations', (req, res) => {
     fetch(`https://tastedive.com/api/similar?q=${app.locals.gameName}`)
         .then((data) => data.json())
-        .then((json) => { res.send(json) })
+        .then((json) => { res.status(200).send(json) })
+        .catch(e=> console.log(e.message))
 })
 app.get('/boxart/:gameName', (req, res) =>{
     getBoxArt(req.params.getName)
-    .then((data)=> res.send(data))
+    .then((data)=> res.status(200).send(data))
+    .catch(e=> console.log(e.message))
 })
 
 app.listen(port, () => {
