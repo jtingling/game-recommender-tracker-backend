@@ -1,7 +1,23 @@
 const query = {
     "cover": `game,height,width,image_id,url;`,
     "company": `name,logo,description,published,websites,updated_at;`,
-    "game": `name,platforms,category,screenshots.*,rating,rating_count,release_dates,summary,screenshots.url,videos;`
+    "game": `
+        name,
+        platforms,
+        screenshots.*,
+        franchise.games,
+        game_modes.name,
+        genres.name,
+        multiplayer_modes,
+        ports,
+        remakes,
+        remasters,
+        similar_games,
+        status,rating,
+        rating_count,
+        release_dates,
+        summary,
+        videos;`
 }
 
 const uris = {
