@@ -15,7 +15,11 @@ const TWITCH = { id: process.env.TWITCH_CLIENT_ID, secret: process.env.TWITCH_SE
 const IGDB_HEADER = {
     authorization: "8jag72ceoqm11s1nomu5y5veup55zg"
 }
-const getGameData = (gameName, endPoint) => {
+mongoose.connect(process.env.MONGO_URI,{useNewUrlParser: true, useUnifiedTopology: true});
+mongoose.connection.on('error', (e)=> console.log(e.message));
+mongoose.connection.once('open', ()=> console.log("Connection to DB established."));
+
+const getIgdbData = (gameName, endPoint) => {
     let query = igdb.createQuery(gameName);
     return axios({
         method: 'POST',
@@ -48,12 +52,12 @@ app.get('/authenticate', (req, res) => {
 
 app.get('/games/:gameName', (req, res, next) => {
     app.locals.gameName = req.params.gameName;
-    getGameData(app.locals.gameName, igdb.getUris.game)
-    .then(response => res.status(200).send(response.data))
+    getIgdbData(app.locals.gameName, igdb.getUris.game)
+    .then(response => {res.status(200).send(response.data); console.log("IGDB Response OK.")})
     .catch( e => console.log(e.message))
 })
 app.get('/search/:id', (req, res)=>{
-    
+
 })
 
 app.get('/recommendations', (req, res) => {
@@ -67,6 +71,7 @@ app.get('/boxart/:gameName', (req, res) =>{
     .then((data)=> res.status(200).send(data))
     .catch(e=> console.log(e.message))
 })
+app.get('/')
 
 app.listen(port, () => {
     console.log(`Server listening on port:${port}`);
