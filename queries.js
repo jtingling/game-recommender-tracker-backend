@@ -1,5 +1,5 @@
 const query = {
-    "cover": `game,height,width,image_id,url;`,
+    "cover": `image_id,url;`,
     "company": `name,logo,description,published,websites,updated_at;`,
     "game": `
         name,
@@ -8,6 +8,7 @@ const query = {
         franchise.games,
         game_modes.name,
         genres.name,
+        cover,
         multiplayer_modes,
         ports,
         remakes,
@@ -20,10 +21,15 @@ const query = {
         videos;`
 }
 
-const uris = {
-    "cover": "v4/cover",
+const igdbUris = {
+    "cover": "v4/covers",
     "company": "v4/company",
-    "game": "v4/games"
+    "game": "v4/games",
+}
+
+const youtubeDomain = {
+    search: "https://youtube.googleapis.com/youtube/v3/search",
+    video: "https://youtube.googleapis.com/youtube/v3/videos"
 }
 
 const searchGames = (gameName) => {
@@ -32,10 +38,22 @@ const searchGames = (gameName) => {
 }
 
 const searchByGameId = (gameId) => {
-    let id = `where id= ${gameId}; fields ${query.game}`;
+    let id = `where id = ${gameId}; fields ${query.game}`;
     return id;
 }
+const getCoverQuery = (gameId) => {
+    let coverQuery;
+    if (gameId != undefined) {
+        coverQuery = `fields ${query.cover} where id=${gameId};`;
+    } else {
+        coverQuery = [{image_id: gameId}]
+        return coverQuery
+    }
+    return coverQuery;
+}
 
-exports.getUris = uris;
+exports.getUris = igdbUris;
+exports.getTrailers = youtubeDomain;
 exports.createQuery = searchGames;
-exports.searchById = searchByGameId
+exports.searchById = searchByGameId;
+exports.getCoverByGameId = getCoverQuery;
