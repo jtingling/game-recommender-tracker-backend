@@ -7,6 +7,7 @@ const filter = require('./filter')
 require('dotenv').config();
 let app = express();
 const igdb = require('./queries');
+const youtubeAPI = require('./queries');
 const port = process.env.PORT || 5000;
 
 app.use(cors());
@@ -33,14 +34,32 @@ const getIgdbData = (gameName, endPoint) => {
     })
 }
 
-const getBoxArt = (gameName) => {
+const getBoxArt = (endPoint, coverQuery) => {
+    if (coverQuery[0].image_id) {
+        return coverQuery
+    } else {
+        return axios({
+            method: 'POST',
+            url: `https://api.igdb.com/${endPoint}`,
+            headers: {
+                "Content-Type": "application/json",
+                "Client-ID": TWITCH.id,
+                "Authorization": `Bearer ${IGDB_HEADER.authorization}`
+            },
+            data: coverQuery
+        })
+    }
+}
+const getGameVideo = (gameName, youtubeAPI) => {
     return axios({
         method: 'GET',
-        url: `https://api.twitch.tv/helix/games?name=${gameName}`,
-        headers: {
-            "Client-ID": TWITCH.id,
-            "Authorization": `Bearer ${IGDB_HEADER.authorization}`
-        }
+        url: `${youtubeAPI.search}?part=snippet&maxResults=5&q=${gameName} Trailer&key=${process.env.YOUTUBE_KEY}`,
+    })
+    .then(response=>{
+        axios({
+            method: 'GET',
+            url: `${youtubeAPI.video}?part=player&id=${response.data.items[0].id.videoId}&key=${process.env.YOUTUBE_KEY}`
+        })
     })
 }
 
@@ -51,8 +70,7 @@ app.get('/authenticate', (req, res) => {
 
 
 app.get('/games/:gameName', (req, res, next) => {
-    app.locals.gameName = req.params.gameName;
-    getIgdbData(app.locals.gameName, igdb.getUris.game)
+    getIgdbData(req.params.gameName, igdb.getUris.game)
     .then(response => {res.status(200).send(response.data); console.log("IGDB Response OK.")})
     .catch( e => console.log(e.message))
 })
@@ -66,12 +84,18 @@ app.get('/recommendations', (req, res) => {
         .then((json) => { res.status(200).send(json) })
         .catch(e=> console.log(e.message))
 })
-app.get('/boxart/:gameName', (req, res) =>{
-    getBoxArt(req.params.getName)
-    .then((data)=> res.status(200).send(data))
+app.get('/boxart/:coverId', (req, res) =>{
+    let coverQuery = igdb.getCoverByGameId(req.params.coverId);
+    getBoxArt(igdb.getUris.cover, coverQuery)
+    .then(response=> res.status(200).send(response.data))
     .catch(e=> console.log(e.message))
 })
-app.get('/')
+
+app.get('/video/:gameName', (req, res) =>{
+    getGameVideo(req.params.gameName, youtubeAPI.getTrailers)
+    .then((data)=> res.status(200).send(data))
+    .catch(e=> res.status(403).send(e.message + " Daily Quota Exceeded"))
+})
 
 app.listen(port, () => {
     console.log(`Server listening on port:${port}`);
