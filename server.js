@@ -14,7 +14,7 @@ app.use(cors());
 app.use(express.json())
 const TWITCH = { id: process.env.TWITCH_CLIENT_ID, secret: process.env.TWITCH_SECRET }
 const IGDB_HEADER = {
-    authorization: "8jag72ceoqm11s1nomu5y5veup55zg"
+    authorization: process.env.IGDB_AUTH
 }
 mongoose.connect(process.env.MONGO_URI,{useNewUrlParser: true, useUnifiedTopology: true});
 mongoose.connection.on('error', (e)=> console.log(e.message));
