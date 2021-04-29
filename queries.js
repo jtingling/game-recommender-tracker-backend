@@ -38,7 +38,7 @@ const searchGames = (gameName) => {
 }
 
 const searchByGameId = (gameId) => {
-    let id = `where id = ${gameId}; fields ${query.game}`;
+    let id = `where id = ${gameId} fields ${query.game}`;
     return id;
 }
 const getCoverQuery = (gameId) => {
