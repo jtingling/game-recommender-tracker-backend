@@ -55,12 +55,7 @@ const getGameVideo = (gameName, youtubeAPI) => {
         method: 'GET',
         url: `${youtubeAPI.search}?part=snippet&maxResults=5&q=${gameName} Trailer&key=${process.env.YOUTUBE_KEY}`,
     })
-    .then(response=>{
-        axios({
-            method: 'GET',
-            url: `${youtubeAPI.video}?part=player&id=${response.data.items[0].id.videoId}&key=${process.env.YOUTUBE_KEY}`
-        })
-    })
+    .then(response => response.data.items[0].id.videoId)
 }
 
 app.get('/authenticate', (req, res) => {
