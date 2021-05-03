@@ -14,7 +14,8 @@ const query = {
         remakes,
         remasters,
         similar_games,
-        status,rating,
+        status,
+        rating,
         rating_count,
         release_dates,
         summary,
@@ -33,7 +34,7 @@ const youtubeDomain = {
 }
 
 const searchGames = (gameName) => {
-    let search = "search " + `"${gameName}"` + "; " + "fields " + query.game;
+    let search = "search " + `"${gameName}"` + "; " + "fields " + query.game + " limit 25;";
     return search;
 }
 
@@ -44,7 +45,7 @@ const searchByGameId = (gameId) => {
 const getCoverQuery = (gameId) => {
     let coverQuery;
     if (gameId != undefined) {
-        coverQuery = `fields ${query.cover} where id=${gameId};`;
+        coverQuery = `fields ${query.cover} where id=${gameId};` + " limit 25;";
     } else {
         coverQuery = [{image_id: gameId}]
         return coverQuery

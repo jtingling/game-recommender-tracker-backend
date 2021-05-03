@@ -6,7 +6,12 @@ const gameSchema = new mongoose.Schema({
     genres: [{id: Number, name: String}],
     multiplayer_modes: [Number],
     name: String,
+    cover: [Number],
     platforms: [Number],
+    franchise_games: [Number],
+    ports: [Number],
+    remakes: [Number],
+    remasters: [Number],
     rating: Number,
     rating_count: [Number],
     release_dates: [Number],
@@ -20,6 +25,7 @@ const gameSchema = new mongoose.Schema({
         checksum: String
     }],
     similar_games: [Number],
+    status: Number,
     summary: String,
     videos: [Number]
 })
