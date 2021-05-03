@@ -88,7 +88,7 @@ app.get('/boxart/:coverId', (req, res) =>{
 
 app.get('/video/:gameName', (req, res) =>{
     getGameVideo(req.params.gameName, youtubeAPI.getTrailers)
-    .then((data)=> {console.log(data); res.status(200).json(data)})
+    .then((data)=> res.status(200).json(data))
     .catch(e=> res.status(403).send(e.message + " Daily Quota Exceeded"))
 })
 
