@@ -30,6 +30,6 @@ const gameSchema = new mongoose.Schema({
     videos: [Number]
 })
 
-const Game = mongoose.model('Game', gameSchema);
-const SavedGames = new Game
-exports.SaveGame = SavedGames;
+const GameModel = mongoose.model('Game', gameSchema);
+exports.gameSchema = gameSchema;
+exports.Game = GameModel;

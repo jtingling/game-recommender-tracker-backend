@@ -10,6 +10,8 @@ const igdb = require('./queries');
 const youtubeAPI = require('./queries');
 const port = process.env.PORT || 5000;
 
+const Game = require('./models/game');
+
 app.use(cors());
 app.use(express.json())
 const TWITCH = { id: process.env.TWITCH_CLIENT_ID, secret: process.env.TWITCH_SECRET }
@@ -69,9 +71,6 @@ app.get('/games/:gameName', (req, res, next) => {
     .then(response => {res.status(200).send(response.data); console.log("IGDB Response OK.")})
     .catch( e => console.log(e.message))
 })
-app.get('/search/:id', (req, res)=>{
-
-})
 
 app.get('/recommendations', (req, res) => {
     fetch(`https://tastedive.com/api/similar?q=${app.locals.gameName}`)
@@ -90,6 +89,22 @@ app.get('/video/:gameName', (req, res) =>{
     getGameVideo(req.params.gameName, youtubeAPI.getTrailers)
     .then((data)=> res.status(200).json(data))
     .catch(e=> res.status(403).send(e.message + " Daily Quota Exceeded"))
+})
+
+app.post('/add', (req, res) => {
+
+})
+
+app.delete('/:id', (req, res) => {
+
+})
+
+app.post('/update/:id', (req, res) => {
+
+})
+
+app.get('/:id', (req, res)=>{
+
 })
 
 app.listen(port, () => {
