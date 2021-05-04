@@ -10,7 +10,7 @@ const igdb = require('./queries');
 const youtubeAPI = require('./queries');
 const port = process.env.PORT || 5000;
 
-const Game = require('./models/game');
+const GameModel = require('./models/game');
 
 app.use(cors());
 app.use(express.json())
@@ -68,7 +68,7 @@ app.get('/authenticate', (req, res) => {
 
 app.get('/games/:gameName', (req, res, next) => {
     getIgdbData(req.params.gameName, igdb.getUris.game)
-    .then(response => {res.status(200).send(response.data); console.log("IGDB Response OK.")})
+    .then(response => {res.status(200).send(response.data); })
     .catch( e => console.log(e.message))
 })
 
@@ -92,7 +92,46 @@ app.get('/video/:gameName', (req, res) =>{
 })
 
 app.post('/add', (req, res) => {
+    const game = req.body;
 
+    const id = game.id;
+    const gameModes = game.game_modes;
+    const genres = game.genres;
+    const name = game.name;
+    const cover= game.cover;
+    const platforms = game.platforms;
+    const franchise = game.franchise;
+    const ports = game.ports;
+    const remakes = game.remakes;
+    const remasters = game.remasters;
+    const rating = game.rating;    
+    const releaseDates = game.release_dates;
+    const screenShots = game.screenshots;
+    const similarGames = game.similar_games;
+    const summary = game.summary;
+    const videos = game.videos;
+
+    const saveGame = new GameModel({
+        id,
+        gameModes,
+        genres,
+        name,
+        cover,
+        platforms,
+        franchise,
+        ports,
+        remakes,
+        remasters,
+        rating,
+        releaseDates,
+        screenShots,
+        similarGames,
+        summary,
+        videos
+    })
+    saveGame.save()
+        .then(()=>{res.json('exercise added')})
+        .catch((err)=> res.status(400).json("error: " + err ))
 })
 
 app.delete('/:id', (req, res) => {
