@@ -1,13 +1,9 @@
-import gameSchema from './game';
-
 const mongoose = require('mongoose');
 
-const gameList = new mongoose.Schema({
-    list: {
-        type: gameSchema,
-        default: {}
-    }
+const gameListSchema = new mongoose.Schema({
+    list: Number,
+    identifier: String
 })
 
-const listModel = mongoose.model('list', gameList);
-exports.list = listModel;
+const ListModel = mongoose.model('favouriteGame', gameListSchema);
+module.exports = ListModel;
