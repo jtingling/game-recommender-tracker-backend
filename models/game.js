@@ -40,6 +40,13 @@ const gameSchema = new mongoose.Schema({
     videos: [Number]
 })
 
+const favouriteGamesSchema = new mongoose.Schema({
+    gameIds: [Number],
+    favouriteId: String
+})
+
 const GameModel = mongoose.model('Game', gameSchema);
+const FavouriteGames = mongoose.model('FavouriteGame', favouriteGamesSchema);
 module.exports = gameSchema;
 module.exports = GameModel;
+module.exports = FavouriteGames;

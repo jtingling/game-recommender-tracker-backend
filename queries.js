@@ -2,6 +2,7 @@ const query = {
     "cover": `image_id,url;`,
     "company": `name,logo,description,published,websites,updated_at;`,
     "game": `
+        id,
         name,
         platforms,
         screenshots.*,
@@ -9,7 +10,6 @@ const query = {
         game_modes.name,
         genres.name,
         cover,
-        multiplayer_modes,
         ports,
         remakes,
         remasters,
@@ -34,12 +34,12 @@ const youtubeDomain = {
 }
 
 const searchGames = (gameName) => {
-    let search = "search " + `"${gameName}"` + "; " + "fields " + query.game + " limit 25;";
+    let search = "search " + `"${gameName}"` + "; " + "fields " + query.game + " limit 20;";
     return search;
 }
 
 const searchByGameId = (gameId) => {
-    let id = `where id = ${gameId} fields ${query.game}`;
+    let id = `where id = ${gameId}; fields ${query.game};`;
     return id;
 }
 const getCoverQuery = (gameId) => {
@@ -56,5 +56,5 @@ const getCoverQuery = (gameId) => {
 exports.getUris = igdbUris;
 exports.getTrailers = youtubeDomain;
 exports.createQuery = searchGames;
-exports.searchById = searchByGameId;
+exports.searchOneById = searchByGameId;
 exports.getCoverByGameId = getCoverQuery;

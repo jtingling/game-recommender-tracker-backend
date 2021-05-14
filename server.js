@@ -7,10 +7,12 @@ const filter = require('./filter')
 require('dotenv').config();
 let app = express();
 const igdb = require('./queries');
+const {searchOneById}  = require('./queries');
 const youtubeAPI = require('./queries');
 const port = process.env.PORT || 5000;
 
 const GameModel = require('./models/game');
+const FavouriteGames = require('./models/game');
 
 app.use(cors());
 app.use(express.json())
@@ -18,9 +20,15 @@ const TWITCH = { id: process.env.TWITCH_CLIENT_ID, secret: process.env.TWITCH_SE
 const IGDB_HEADER = {
     authorization: process.env.IGDB_AUTH
 }
-mongoose.connect(process.env.MONGO_URI,{useNewUrlParser: true, useUnifiedTopology: true});
-mongoose.connection.on('error', (e)=> console.log(e.message));
-mongoose.connection.once('open', ()=> console.log("Connection to DB established."));
+mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true });
+mongoose.connection.on('error', (e) => console.log(e.message));
+mongoose.connection.once('open', () => console.log("Connection to DB established."));
+
+//IGDB
+app.get('/authenticate', (req, res) => {
+    fetch(`https://id.twitch.tv/oauth2/token?client_id=${TWITCH.id}&client_secret=${TWITCH.secret}&grant_type=client_credentials`)
+        .then(response => console.log(response));
+})
 
 const getIgdbData = (gameName, endPoint) => {
     let query = igdb.createQuery(gameName);
@@ -52,99 +60,138 @@ const getBoxArt = (endPoint, coverQuery) => {
         })
     }
 }
+
+app.get('/games/:gameName', (req, res, next) => {
+    getIgdbData(req.params.gameName, igdb.getUris.game)
+    .then(response => { res.status(200).send(response.data); })
+    .catch(e => console.log(e.message))
+})
+
+app.get('/boxart/:coverId', (req, res) => {
+    let coverQuery = igdb.getCoverByGameId(req.params.coverId);
+    getBoxArt(igdb.getUris.cover, coverQuery)
+        .then(response => res.status(200).send(response.data))
+        .catch(e => console.log(e.message))
+})
+
+app.get('/game/:id', (req, res) => {
+    const query = searchOneById(req.params.id)
+    axios({
+        method: 'POST',
+        url: `https://api.igdb.com/${igdb.getUris.game}`,
+        headers: {
+            "Content-Type": "application/json",
+            "Client-ID": TWITCH.id,
+            "Authorization": `Bearer ${IGDB_HEADER.authorization}`
+        },
+        data: query
+    })
+    .then( response => res.status(200).send(response.data))
+    .catch(err => console.log(err))
+})
+
+//Youtube
 const getGameVideo = (gameName, youtubeAPI) => {
     return axios({
         method: 'GET',
         url: `${youtubeAPI.search}?part=snippet&maxResults=5&q=${gameName} Trailer&key=${process.env.YOUTUBE_KEY}`,
     })
-    .then(response => response.data.items[0].id.videoId)
+        .then(response => response.data.items[0].id.videoId)
 }
 
-app.get('/authenticate', (req, res) => {
-    fetch(`https://id.twitch.tv/oauth2/token?client_id=${TWITCH.id}&client_secret=${TWITCH.secret}&grant_type=client_credentials`)
-        .then(response => console.log(response));
-})
-
-
-app.get('/games/:gameName', (req, res, next) => {
-    getIgdbData(req.params.gameName, igdb.getUris.game)
-    .then(response => {res.status(200).send(response.data); })
-    .catch( e => console.log(e.message))
-})
-
-app.get('/recommendations', (req, res) => {
-    fetch(`https://tastedive.com/api/similar?q=${app.locals.gameName}`)
-        .then((data) => data.json())
-        .then((json) => { res.status(200).send(json) })
-        .catch(e=> console.log(e.message))
-})
-app.get('/boxart/:coverId', (req, res) =>{
-    let coverQuery = igdb.getCoverByGameId(req.params.coverId);
-    getBoxArt(igdb.getUris.cover, coverQuery)
-    .then(response=> res.status(200).send(response.data))
-    .catch(e=> console.log(e.message))
-})
-
-app.get('/video/:gameName', (req, res) =>{
+app.get('/video/:gameName', (req, res) => {
     getGameVideo(req.params.gameName, youtubeAPI.getTrailers)
-    .then((data)=> res.status(200).json(data))
-    .catch(e=> res.status(403).send(e.message + " Daily Quota Exceeded"))
+        .then((data) => res.status(200).json(data))
+        .catch(e => res.status(403).send(e.message + " Daily Quota Exceeded"))
 })
 
-app.post('/add', (req, res) => {
-    const game = req.body;
+//MongoDB
 
-    const id = game.id;
-    const gameModes = game.game_modes;
-    const genres = game.genres;
-    const name = game.name;
-    const cover= game.cover;
-    const platforms = game.platforms;
-    const franchise = game.franchise;
-    const ports = game.ports;
-    const remakes = game.remakes;
-    const remasters = game.remasters;
-    const rating = game.rating;    
-    const releaseDates = game.release_dates;
-    const screenShots = game.screenshots;
-    const similarGames = game.similar_games;
-    const summary = game.summary;
-    const videos = game.videos;
-
-    const saveGame = new GameModel({
-        id,
-        gameModes,
-        genres,
-        name,
-        cover,
-        platforms,
-        franchise,
-        ports,
-        remakes,
-        remasters,
-        rating,
-        releaseDates,
-        screenShots,
-        similarGames,
-        summary,
-        videos
-    })
-    saveGame.save()
-        .then(()=>{res.json('exercise added')})
-        .catch((err)=> res.status(400).json("error: " + err ))
+app.post('/add', async (req, res) => {
+    const gameExists = await GameModel.exists({"gameId": req.body.id});
+    if (!gameExists) {
+        const game = req.body;
+        const gameId = game.id;
+        const gameModes = game.game_modes;
+        const genres = game.genres;
+        const name = game.name;
+        const cover = game.cover;
+        const platforms = game.platforms;
+        const franchiseGames = game.franchise;
+        const ports = game.ports;
+        const remakes = game.remakes;
+        const remasters = game.remasters;
+        const rating = game.rating;
+        const releaseDates = game.release_dates;
+        const screenShots = game.screenshots;
+        const similarGames = game.similar_games;
+        const summary = game.summary;
+        const videos = game.videos;
+        const saveGame = new GameModel({
+            gameId,
+            gameModes,
+            genres,
+            name,
+            cover,
+            platforms,
+            franchiseGames,
+            ports,
+            remakes,
+            remasters,
+            rating,
+            releaseDates,
+            screenShots,
+            similarGames,
+            summary,
+            videos
+        })
+        saveGame.save()
+            .then(() => res.json('game added') )
+            .catch((err) => res.status(400).json("error: " + err))
+    }
 })
 
-app.delete('/:id', (req, res) => {
+app.post('/addToFavourites', async (req, res) => {
+    const gameIds = req.body.gameId;
+    const favouriteId = req.body.favouriteId;
+    let user = await FavouriteGames.exists({"favouriteId": favouriteId});
+    if (user) {
+        FavouriteGames.findOneAndUpdate({"favouriteId": favouriteId},{$push: {"gameIds": gameIds}},{new: true}, (err, query) =>{
+            if (err) {
+                console.log(err)
+            } else {
+                console.log(`Game Id: ${gameIds} added to list: ${favouriteId}`);
+                res.status(200).json(query);
+            }
+        })
+    } else {
+        saveGameToList = new FavouriteGames({
+            gameIds,
+            favouriteId
+        }).save()
+        .then( res => res.json("New user document created"))
+        .catch( (err) => res.json("Failed to create new user"));
+    }
+})
+app.get('/getList/:favouriteListKey', async (req, res) => {
+    let user = await FavouriteGames.exists({"favouriteId": req.params.favouriteListKey});
 
+    if (user) {
+        FavouriteGames.find({"favouriteId": req.params.favouriteListKey}, (err, document) =>{
+            if (err) {
+                console.log(err)
+            } else {
+                console.log(document)
+                res.status(200).json(document);
+            }
+        })
+    }
 })
 
 app.post('/update/:id', (req, res) => {
 
 })
 
-app.get('/:id', (req, res)=>{
-
-})
 
 app.listen(port, () => {
     console.log(`Server listening on port:${port}`);
