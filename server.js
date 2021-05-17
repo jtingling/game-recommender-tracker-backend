@@ -12,7 +12,7 @@ const youtubeAPI = require('./queries');
 const port = process.env.PORT || 5000;
 
 const GameModel = require('./models/game');
-const FavouriteGames = require('./models/game');
+const FavouriteGames = require('./models/list');
 
 app.use(cors());
 app.use(express.json())
@@ -63,7 +63,7 @@ const getBoxArt = (endPoint, coverQuery) => {
 
 app.get('/games/:gameName', (req, res, next) => {
     getIgdbData(req.params.gameName, igdb.getUris.game)
-    .then(response => { res.status(200).send(response.data); })
+    .then(response => res.status(200).send(response.data))
     .catch(e => console.log(e.message))
 })
 
@@ -74,8 +74,8 @@ app.get('/boxart/:coverId', (req, res) => {
         .catch(e => console.log(e.message))
 })
 
-app.get('/game/:id', (req, res) => {
-    const query = searchOneById(req.params.id)
+app.get('/favourites', (req, res) => {
+    const query = searchOneById(req.query.gameIds)
     axios({
         method: 'POST',
         url: `https://api.igdb.com/${igdb.getUris.game}`,
@@ -107,9 +107,10 @@ app.get('/video/:gameName', (req, res) => {
 
 //MongoDB
 
-app.post('/add', async (req, res) => {
-    const gameExists = await GameModel.exists({"gameId": req.body.id});
-    if (!gameExists) {
+app.post('/add/game', async (req, res) => {
+    let checkGame = await GameModel.exists({"name": req.body.name});
+
+    if (!checkGame) {
         const game = req.body;
         const gameId = game.id;
         const gameModes = game.game_modes;
@@ -117,7 +118,7 @@ app.post('/add', async (req, res) => {
         const name = game.name;
         const cover = game.cover;
         const platforms = game.platforms;
-        const franchiseGames = game.franchise;
+        const franchiseGames = game.franchises;
         const ports = game.ports;
         const remakes = game.remakes;
         const remasters = game.remasters;
@@ -127,7 +128,7 @@ app.post('/add', async (req, res) => {
         const similarGames = game.similar_games;
         const summary = game.summary;
         const videos = game.videos;
-        const saveGame = new GameModel({
+        const newGame = new GameModel({
             gameId,
             gameModes,
             genres,
@@ -145,13 +146,19 @@ app.post('/add', async (req, res) => {
             summary,
             videos
         })
-        saveGame.save()
-            .then(() => res.json('game added') )
-            .catch((err) => res.status(400).json("error: " + err))
+        newGame.save(function(err) {
+            if (err) {
+                console.log(err)
+                return;
+            }
+            res.json("New game document created")
+        })
+    } else {
+        res.json("Game already exists in DB")
     }
 })
 
-app.post('/addToFavourites', async (req, res) => {
+app.post('/add/favourites', async (req, res) => {
     const gameIds = req.body.gameId;
     const favouriteId = req.body.favouriteId;
     let user = await FavouriteGames.exists({"favouriteId": favouriteId});
@@ -165,12 +172,17 @@ app.post('/addToFavourites', async (req, res) => {
             }
         })
     } else {
-        saveGameToList = new FavouriteGames({
+        const saveGameToList = new FavouriteGames({
             gameIds,
-            favouriteId
-        }).save()
-        .then( res => res.json("New user document created"))
-        .catch( (err) => res.json("Failed to create new user"));
+            favouriteId,
+        })
+        saveGameToList.save(function(err) {
+            if (err) {
+                console.log(err)
+                return;
+            }
+            res.json("New user list document created")
+        })
     }
 })
 app.get('/getList/:favouriteListKey', async (req, res) => {
@@ -181,8 +193,7 @@ app.get('/getList/:favouriteListKey', async (req, res) => {
             if (err) {
                 console.log(err)
             } else {
-                console.log(document)
-                res.status(200).json(document);
+                res.status(200).json(document[0].gameIds);
             }
         })
     }

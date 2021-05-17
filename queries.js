@@ -39,13 +39,13 @@ const searchGames = (gameName) => {
 }
 
 const searchByGameId = (gameId) => {
-    let id = `where id = ${gameId}; fields ${query.game};`;
+    let id = `where id = (${gameId}); fields ${query.game};`;
     return id;
 }
 const getCoverQuery = (gameId) => {
     let coverQuery;
     if (gameId != undefined) {
-        coverQuery = `fields ${query.cover} where id=${gameId};` + " limit 25;";
+        coverQuery = `fields ${query.cover} where id=${gameId};` + " limit 20;";
     } else {
         coverQuery = [{image_id: gameId}]
         return coverQuery
