@@ -1,9 +1,10 @@
 const mongoose = require('mongoose');
 
-const gameListSchema = new mongoose.Schema({
-    list: Number,
-    identifier: String
+const favouriteGamesSchema = new mongoose.Schema({
+    gameIds: [Number],
+    favouriteId: String
 })
 
-const ListModel = mongoose.model('favouriteGame', gameListSchema);
-module.exports = ListModel;
+const FavouriteGames = mongoose.model('FavouriteGame', favouriteGamesSchema);
+
+module.exports = FavouriteGames;
