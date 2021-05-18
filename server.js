@@ -185,13 +185,27 @@ app.post('/add/favourites', async (req, res) => {
         })
     }
 })
+
+app.post('/remove', async (req, res) => {
+    let user = await FavouriteGames.exists({"favouriteId": req.body.favouriteListKey});
+    if (user) {
+        FavouriteGames.findOneAndUpdate({"favouriteId": req.body.favouriteListKey}, {$set: {"gameIds": req.body.newFavourites}}, {new: true}, (err, query)=> {
+            if (err) {
+                console.log(err)
+            } else {
+                console.log(`Game Id: ${req.body.id} removed from list: ${req.body.favouriteListKey}`);
+                res.status(200).json(query);
+            }
+        })
+
+    }    
+})
 app.get('/getList/:favouriteListKey', async (req, res) => {
     let user = await FavouriteGames.exists({"favouriteId": req.params.favouriteListKey});
-
     if (user) {
         FavouriteGames.find({"favouriteId": req.params.favouriteListKey}, (err, document) =>{
             if (err) {
-                console.log(err)
+                console.log(err.status)
             } else {
                 res.status(200).json(document[0].gameIds);
             }
