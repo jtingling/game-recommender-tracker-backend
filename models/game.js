@@ -26,7 +26,7 @@ const gameSchema = new mongoose.Schema({
     gameModes: [gameModesSchema],
     genres: [gameGenre],
     name: String,
-    cover: [Number],
+    cover: String,
     platforms: [Number],
     franchiseGames: [{id: Number, games:[Number]}],
     ports: [Number],

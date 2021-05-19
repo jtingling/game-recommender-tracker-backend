@@ -9,7 +9,7 @@ const query = {
         franchise.games,
         game_modes.name,
         genres.name,
-        cover,
+        cover.image_id,
         ports,
         remakes,
         remasters,
@@ -26,6 +26,7 @@ const igdbUris = {
     "cover": "v4/covers",
     "company": "v4/company",
     "game": "v4/games",
+    "multiQuery": "v4/multiquery"
 }
 
 const youtubeDomain = {
@@ -34,18 +35,18 @@ const youtubeDomain = {
 }
 
 const searchGames = (gameName) => {
-    let search = "search " + `"${gameName}"` + "; " + "fields " + query.game + " limit 20;";
+    let search = "search " + `"${gameName}"` + "; " + "fields " + query.game + " limit 50;";
     return search;
 }
 
 const searchByGameId = (gameId) => {
-    let id = `where id = (${gameId}); fields ${query.game};`;
+    let id = `query games "getGames" {fields ${query.game} where id=(${gameId});` + " limit 50;};";
     return id;
 }
 const getCoverQuery = (gameId) => {
     let coverQuery;
     if (gameId != undefined) {
-        coverQuery = `fields ${query.cover} where id=${gameId};` + " limit 20;";
+        coverQuery = `fields ${query.cover} where id=${gameId};` + " limit 50;";
     } else {
         coverQuery = [{image_id: gameId}]
         return coverQuery

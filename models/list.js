@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const favouriteGamesSchema = new mongoose.Schema({
-    gameIds: [Number],
+    id: [Number],
     favouriteId: String
 })
 

@@ -44,41 +44,17 @@ const getIgdbData = (gameName, endPoint) => {
     })
 }
 
-const getBoxArt = (endPoint, coverQuery) => {
-    if (coverQuery[0].image_id) {
-        return coverQuery
-    } else {
-        return axios({
-            method: 'POST',
-            url: `https://api.igdb.com/${endPoint}`,
-            headers: {
-                "Content-Type": "application/json",
-                "Client-ID": TWITCH.id,
-                "Authorization": `Bearer ${IGDB_HEADER.authorization}`
-            },
-            data: coverQuery
-        })
-    }
-}
-
-app.get('/games/:gameName', (req, res, next) => {
+app.get('/games/:gameName', (req, res) => {
     getIgdbData(req.params.gameName, igdb.getUris.game)
     .then(response => res.status(200).send(response.data))
     .catch(e => console.log(e.message))
 })
 
-app.get('/boxart/:coverId', (req, res) => {
-    let coverQuery = igdb.getCoverByGameId(req.params.coverId);
-    getBoxArt(igdb.getUris.cover, coverQuery)
-        .then(response => res.status(200).send(response.data))
-        .catch(e => console.log(e.message))
-})
-
 app.get('/favourites', (req, res) => {
-    const query = searchOneById(req.query.gameIds)
+    const query = searchOneById(req.query.id)
     axios({
         method: 'POST',
-        url: `https://api.igdb.com/${igdb.getUris.game}`,
+        url: `https://api.igdb.com/${igdb.getUris.multiQuery}`,
         headers: {
             "Content-Type": "application/json",
             "Client-ID": TWITCH.id,
@@ -86,7 +62,7 @@ app.get('/favourites', (req, res) => {
         },
         data: query
     })
-    .then( response => res.status(200).send(response.data))
+    .then( response => res.status(200).send(response.data[0].result))
     .catch(err => console.log(err))
 })
 
@@ -112,11 +88,11 @@ app.post('/add/game', async (req, res) => {
 
     if (!checkGame) {
         const game = req.body;
-        const gameId = game.id;
+        const id = game.id;
         const gameModes = game.game_modes;
         const genres = game.genres;
         const name = game.name;
-        const cover = game.cover;
+        const cover = game.cover.image_id;
         const platforms = game.platforms;
         const franchiseGames = game.franchises;
         const ports = game.ports;
@@ -129,7 +105,7 @@ app.post('/add/game', async (req, res) => {
         const summary = game.summary;
         const videos = game.videos;
         const newGame = new GameModel({
-            gameId,
+            id,
             gameModes,
             genres,
             name,
@@ -159,21 +135,21 @@ app.post('/add/game', async (req, res) => {
 })
 
 app.post('/add/favourites', async (req, res) => {
-    const gameIds = req.body.gameId;
+    const gameId = req.body.id;
     const favouriteId = req.body.favouriteId;
     let user = await FavouriteGames.exists({"favouriteId": favouriteId});
     if (user) {
-        FavouriteGames.findOneAndUpdate({"favouriteId": favouriteId},{$push: {"gameIds": gameIds}},{new: true}, (err, query) =>{
+        FavouriteGames.findOneAndUpdate({"favouriteId": favouriteId},{$push: {"id": gameId}},{new: true}, (err, query) =>{
             if (err) {
                 console.log(err)
             } else {
-                console.log(`Game Id: ${gameIds} added to list: ${favouriteId}`);
+                console.log(`Game Id: ${gameId} added to list: ${favouriteId}`);
                 res.status(200).json(query);
             }
         })
     } else {
         const saveGameToList = new FavouriteGames({
-            gameIds,
+            gameId,
             favouriteId,
         })
         saveGameToList.save(function(err) {
@@ -189,7 +165,8 @@ app.post('/add/favourites', async (req, res) => {
 app.post('/remove', async (req, res) => {
     let user = await FavouriteGames.exists({"favouriteId": req.body.favouriteListKey});
     if (user) {
-        FavouriteGames.findOneAndUpdate({"favouriteId": req.body.favouriteListKey}, {$set: {"gameIds": req.body.newFavourites}}, {new: true}, (err, query)=> {
+        FavouriteGames.findOneAndUpdate({"favouriteId": req.body.favouriteListKey}, {$set: {"id": req.body.newFavourites}}, {new: true}, (err, query)=> {
+
             if (err) {
                 console.log(err)
             } else {
@@ -207,16 +184,11 @@ app.get('/getList/:favouriteListKey', async (req, res) => {
             if (err) {
                 console.log(err.status)
             } else {
-                res.status(200).json(document[0].gameIds);
+                res.status(200).json(document[0].id);
             }
         })
     }
 })
-
-app.post('/update/:id', (req, res) => {
-
-})
-
 
 app.listen(port, () => {
     console.log(`Server listening on port:${port}`);
