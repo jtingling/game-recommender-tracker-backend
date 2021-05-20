@@ -36,6 +36,9 @@ const getIgdbData = (gameName, endPoint) => {
         url: `https://api.igdb.com/${endPoint}`,
         headers: {
             "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+            'Access-Control-Allow-Methods': '*',
+            "Access-Control-Allow-Headers": "*",
             "Client-ID": TWITCH.id,
             "Authorization": `Bearer ${IGDB_HEADER.authorization}`
         },
@@ -56,6 +59,10 @@ app.get('/favourites', (req, res) => {
         url: `https://api.igdb.com/${igdb.getUris.multiQuery}`,
         headers: {
             "Content-Type": "application/json",
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+            'Access-Control-Allow-Methods': '*',
+            "Access-Control-Allow-Headers": "*",
             "Client-ID": TWITCH.id,
             "Authorization": `Bearer ${IGDB_HEADER.authorization}`
         },
