@@ -3,7 +3,6 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 const fetch = require('node-fetch');
 const axios = require('axios');
-const filter = require('./filter')
 require('dotenv').config();
 let app = express();
 const igdb = require('./queries');
