@@ -184,15 +184,19 @@ app.post('/remove', async (req, res) => {
     }    
 })
 app.get('/getList/:favouriteListKey', async (req, res) => {
-    let user = await FavouriteGames.exists({"favouriteId": req.params.favouriteListKey});
-    if (user) {
-        FavouriteGames.find({"favouriteId": req.params.favouriteListKey}, (err, document) =>{
-            if (err) {
-                console.log(err.status)
-            } else {
-                res.status(200).json(document[0].id);
-            }
-        })
+    try {
+        let user = await FavouriteGames.exists({"favouriteId": req.params.favouriteListKey});
+        if (user) {
+            FavouriteGames.find({"favouriteId": req.params.favouriteListKey}, (err, document) =>{
+                if (err) {
+                    console.log(err.status)
+                } else {
+                    res.status(200).json(document[0].id);
+                }
+            })
+        }
+    } catch (e) {
+        res.send(e);
     }
 })
 
