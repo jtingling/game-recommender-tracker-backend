@@ -184,8 +184,10 @@ app.post('/remove', async (req, res) => {
     }    
 })
 app.get('/getList/:favouriteListKey', async (req, res) => {
+
     try {
         let user = await FavouriteGames.exists({"favouriteId": req.params.favouriteListKey});
+        console.log(user);
         if (user) {
             await FavouriteGames.find({"favouriteId": req.params.favouriteListKey}, (err, document) =>{
                 if (err) {
