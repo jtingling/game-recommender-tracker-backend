@@ -187,7 +187,7 @@ app.get('/getList/:favouriteListKey', async (req, res) => {
     try {
         let user = await FavouriteGames.exists({"favouriteId": req.params.favouriteListKey});
         if (user) {
-            FavouriteGames.find({"favouriteId": req.params.favouriteListKey}, (err, document) =>{
+            await FavouriteGames.find({"favouriteId": req.params.favouriteListKey}, (err, document) =>{
                 if (err) {
                     console.log(err.status)
                 } else {
