@@ -165,13 +165,13 @@ app.post('/add/favourites', async (req, res) => {
 app.post('/remove', async (req, res) => {
     let user = await FavouriteGames.exists({"favouriteId": req.body.favouriteListKey});
     if (user) {
-        FavouriteGames.findOneAndUpdate({"favouriteId": req.body.favouriteListKey}, {$set: {"id": req.body.newFavourites}}, {new: true}, (err, query)=> {
+        FavouriteGames.findOneAndUpdate({"favouriteId": req.body.favouriteListKey}, {$set: {"id": req.body.newFavourites}}, {new: false}, (err, query)=> {
 
             if (err) {
                 console.log(err)
             } else {
                 console.log(`Game Id: ${req.body.id} removed from list: ${req.body.favouriteListKey}`);
-                res.status(200).json(query);
+                res.status(200).end();
             }
         })
 

@@ -40,7 +40,7 @@ const searchGames = (gameName) => {
 }
 
 const searchByGameId = (gameId) => {
-    let id = `query games "getGames" {fields ${query.game} where id=(${gameId});` + " limit 50;};";
+    let id = `query games "getGames" {fields ${query.game} where id=(${gameId});` + " limit 100;};";
     return id;
 }
 const getCoverQuery = (gameId) => {
