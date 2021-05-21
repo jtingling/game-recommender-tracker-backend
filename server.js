@@ -54,22 +54,25 @@ app.get('/games/:gameName', (req, res) => {
 
 app.get('/favourites', (req, res) => {
     const query = searchOneById(req.query.id)
-    axios({
-        method: 'POST',
-        url: `https://api.igdb.com/${igdb.getUris.multiQuery}`,
-        headers: {
-            "Content-Type": "application/json",
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
-            'Access-Control-Allow-Methods': '*',
-            "Access-Control-Allow-Headers": "*",
-            "Client-ID": TWITCH.id,
-            "Authorization": `Bearer ${IGDB_HEADER.authorization}`
-        },
-        data: query
-    })
-    .then( response => res.status(200).send(response.data[0].result))
-    .catch(err => console.log(err))
+    try{
+        axios({
+            method: 'POST',
+            url: `https://api.igdb.com/${igdb.getUris.multiQuery}`,
+            headers: {
+                "Content-Type": "application/json",
+                "Access-Control-Allow-Origin": "*",
+                'Access-Control-Allow-Methods': '*',
+                "Access-Control-Allow-Headers": "*",
+                "Client-ID": TWITCH.id,
+                "Authorization": `Bearer ${IGDB_HEADER.authorization}`
+            },
+            data: query
+        })
+        .then( response => res.status(200).send(response.data[0].result))
+        .catch(err => console.log(err))
+    } catch (e) {
+        res.send(e)
+    }
 })
 
 //Youtube
