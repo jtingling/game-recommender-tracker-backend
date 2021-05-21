@@ -19,9 +19,9 @@ const TWITCH = { id: process.env.TWITCH_CLIENT_ID, secret: process.env.TWITCH_SE
 const IGDB_HEADER = {
     authorization: process.env.IGDB_AUTH
 }
-mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true });
-mongoose.connection.on('error', (e) => console.log(e.message));
-mongoose.connection.once('open', () => console.log("Connection to DB established."));
+mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+    .then( connect => console.log("connected to mongodb"))
+    .catch( e => console.log("could not connect to mongodb..", e));
 
 //IGDB
 app.get('/authenticate', (req, res) => {
